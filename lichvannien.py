@@ -1,6 +1,7 @@
 import datetime
 import math
 import wx
+import wx.adv
 
 CAN = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý']
 CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi']
@@ -158,6 +159,8 @@ class CalendarFrame(wx.Frame):
     def __init__(self):
         super().__init__(None, title="Tra Cứu Lịch Âm Dương", size=(580, 520))
         
+        self.sound_flip = wx.adv.Sound("flip_calendar.wav")
+
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -272,10 +275,15 @@ class CalendarFrame(wx.Frame):
         self.txt_result.SetFocus()
 
     def on_show_today(self, event):
+        if self.sound_flip.IsOk():
+            self.sound_flip.Play(wx.adv.SOUND_ASYNC)
         now = datetime.datetime.now()
         self.update_calendar(now.day, now.month, now.year)
 
     def on_prev_day(self, event):
+        if self.sound_flip.IsOk():
+            self.sound_flip.Play(wx.adv.SOUND_ASYNC)
+
         try:
             d = int(self.txt_day.GetValue().strip())
             m = int(self.txt_month.GetValue().strip())
@@ -287,6 +295,9 @@ class CalendarFrame(wx.Frame):
             wx.MessageBox("Vui lòng nhập ngày tháng năm hợp lệ trước khi chuyển ngày!", "Lỗi nhập liệu", wx.OK | wx.ICON_ERROR)
 
     def on_next_day(self, event):
+        if self.sound_flip.IsOk():
+            self.sound_flip.Play(wx.adv.SOUND_ASYNC)
+
         try:
             d = int(self.txt_day.GetValue().strip())
             m = int(self.txt_month.GetValue().strip())
