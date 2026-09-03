@@ -37,7 +37,7 @@ def getNewMoonDay(k, timeZone):
     C1 -= 0.4068 * math.sin(Mpr * dr) + 0.0161 * math.sin(2 * Mpr * dr)
     C1 -= 0.0004 * math.sin(3 * Mpr * dr)
     C1 += 0.0104 * math.sin(2 * F * dr) - 0.0051 * math.sin((M + Mpr) * dr)
-    C1 -= 0.0074 * math.sin((M - Mpr) * dr) + 0.0004 * math.sin((2 * F + M) * dr)
+    C1 -= 0.00074 * math.sin((M - Mpr) * dr) + 0.0004 * math.sin((2 * F + M) * dr)
     C1 -= 0.0004 * math.sin((2 * F - M) * dr) - 0.0006 * math.sin((2 * F + Mpr) * dr)
     C1 += 0.0010 * math.sin((2 * F - Mpr) * dr) + 0.0005 * math.sin((M + 2 * Mpr) * dr)
     if T < -11:
@@ -156,7 +156,7 @@ def get_can_chi_thang(lunar_month, lunar_year):
 
 class CalendarFrame(wx.Frame):
     def __init__(self):
-        super().__init__(None, title="Tra Cứu Lịch Âm Dương", size=(460, 480))
+        super().__init__(None, title="Tra Cứu Lịch Âm Dương", size=(580, 520))
         
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -192,16 +192,22 @@ class CalendarFrame(wx.Frame):
 
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         
+        self.btn_prev = wx.Button(panel, label="Xem  lịch ngày hôm &trước")
         self.btn_today = wx.Button(panel, label="&Xem lịch ngày hôm nay")
+        self.btn_next = wx.Button(panel, label=" Xem lịch ngày hôm &sau")
         self.btn_search = wx.Button(panel, label="&Tra cứu")
 
-        btn_sizer.Add(self.btn_today, 0, wx.RIGHT, 10)
-        btn_sizer.Add(self.btn_search, 0, wx.LEFT, 10)
+        btn_sizer.Add(self.btn_prev, 0, wx.RIGHT, 5)
+        btn_sizer.Add(self.btn_today, 0, wx.RIGHT, 5)
+        btn_sizer.Add(self.btn_next, 0, wx.RIGHT, 5)
+        btn_sizer.Add(self.btn_search, 0, wx.LEFT, 5)
 
         main_sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.TOP | wx.BOTTOM, 15)
 
         res_box = wx.StaticBox(panel, label="Thông tin Lịch Âm Dương")
         res_sizer = wx.StaticBoxSizer(res_box, wx.VERTICAL)
+
+        result_inner_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.txt_result = wx.TextCtrl(
             panel, 
@@ -212,13 +218,21 @@ class CalendarFrame(wx.Frame):
         font_res = wx.Font(11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         self.txt_result.SetFont(font_res)
 
-        res_sizer.Add(self.txt_result, 1, wx.EXPAND | wx.ALL, 5)
+        self.btn_copy = wx.Button(panel, label="&Copy to Clipboard")
+
+        result_inner_sizer.Add(self.txt_result, 1, wx.EXPAND | wx.RIGHT, 5)
+        result_inner_sizer.Add(self.btn_copy, 0, wx.ALIGN_TOP)
+
+        res_sizer.Add(result_inner_sizer, 1, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(res_sizer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 15)
 
         panel.SetSizer(main_sizer)
 
+        self.btn_prev.Bind(wx.EVT_BUTTON, self.on_prev_day)
         self.btn_today.Bind(wx.EVT_BUTTON, self.on_show_today)
+        self.btn_next.Bind(wx.EVT_BUTTON, self.on_next_day)
         self.btn_search.Bind(wx.EVT_BUTTON, self.on_search)
+        self.btn_copy.Bind(wx.EVT_BUTTON, self.on_copy_clipboard)
         
         self.txt_day.Bind(wx.EVT_TEXT_ENTER, self.on_search)
         self.txt_month.Bind(wx.EVT_TEXT_ENTER, self.on_search)
@@ -250,15 +264,38 @@ class CalendarFrame(wx.Frame):
             f"Năm: {can_chi_nam}"
         )
 
+        self.txt_day.SetValue(str(d))
+        self.txt_month.SetValue(str(m))
+        self.txt_year.SetValue(str(y))
+
         self.txt_result.SetValue(output_text)
         self.txt_result.SetFocus()
 
     def on_show_today(self, event):
         now = datetime.datetime.now()
-        self.txt_day.SetValue(str(now.day))
-        self.txt_month.SetValue(str(now.month))
-        self.txt_year.SetValue(str(now.year))
         self.update_calendar(now.day, now.month, now.year)
+
+    def on_prev_day(self, event):
+        try:
+            d = int(self.txt_day.GetValue().strip())
+            m = int(self.txt_month.GetValue().strip())
+            y = int(self.txt_year.GetValue().strip())
+            current_date = datetime.date(y, m, d)
+            prev_date = current_date - datetime.timedelta(days=1)
+            self.update_calendar(prev_date.day, prev_date.month, prev_date.year)
+        except ValueError:
+            wx.MessageBox("Vui lòng nhập ngày tháng năm hợp lệ trước khi chuyển ngày!", "Lỗi nhập liệu", wx.OK | wx.ICON_ERROR)
+
+    def on_next_day(self, event):
+        try:
+            d = int(self.txt_day.GetValue().strip())
+            m = int(self.txt_month.GetValue().strip())
+            y = int(self.txt_year.GetValue().strip())
+            current_date = datetime.date(y, m, d)
+            next_date = current_date + datetime.timedelta(days=1)
+            self.update_calendar(next_date.day, next_date.month, next_date.year)
+        except ValueError:
+            wx.MessageBox("Vui lòng nhập ngày tháng năm hợp lệ trước khi chuyển ngày!", "Lỗi nhập liệu", wx.OK | wx.ICON_ERROR)
 
     def on_search(self, event):
         try:
@@ -268,6 +305,16 @@ class CalendarFrame(wx.Frame):
             self.update_calendar(d, m, y)
         except ValueError:
             wx.MessageBox("Vui lòng nhập số hợp lệ vào các ô Ngày, Tháng, Năm!", "Lỗi nhập liệu", wx.OK | wx.ICON_ERROR)
+
+    def on_copy_clipboard(self, event):
+        text_to_copy = self.txt_result.GetValue()
+        if text_to_copy:
+            if wx.TheClipboard.Open():
+                wx.TheClipboard.SetData(wx.TextDataObject(text_to_copy))
+                wx.TheClipboard.Close()
+                wx.MessageBox("Đã sao chép thông tin lịch vào bộ nhớ tạm!", "Thông báo", wx.OK | wx.ICON_INFORMATION)
+            else:
+                wx.MessageBox("Không thể mở Clipboard!", "Lỗi", wx.OK | wx.ICON_ERROR)
 
 if __name__ == "__main__":
     app = wx.App(False)
