@@ -195,7 +195,7 @@ class CalendarFrame(wx.Frame):
         self.btn_prev = wx.Button(panel, label="Xem  lịch ngày hôm &trước")
         self.btn_today = wx.Button(panel, label="&Xem lịch ngày hôm nay")
         self.btn_next = wx.Button(panel, label=" Xem lịch ngày hôm &sau")
-        self.btn_search = wx.Button(panel, label="&Tra cứu")
+        self.btn_search = wx.Button(panel, label="Tra &cứu")
 
         btn_sizer.Add(self.btn_prev, 0, wx.RIGHT, 5)
         btn_sizer.Add(self.btn_today, 0, wx.RIGHT, 5)
@@ -218,7 +218,7 @@ class CalendarFrame(wx.Frame):
         font_res = wx.Font(11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         self.txt_result.SetFont(font_res)
 
-        self.btn_copy = wx.Button(panel, label="&Copy to Clipboard")
+        self.btn_copy = wx.Button(panel, label="sao chép vào &bộ nhớ tạm")
 
         result_inner_sizer.Add(self.txt_result, 1, wx.EXPAND | wx.RIGHT, 5)
         result_inner_sizer.Add(self.btn_copy, 0, wx.ALIGN_TOP)
@@ -314,7 +314,7 @@ class CalendarFrame(wx.Frame):
                 wx.TheClipboard.Close()
                 wx.MessageBox("Đã sao chép thông tin lịch vào bộ nhớ tạm!", "Thông báo", wx.OK | wx.ICON_INFORMATION)
             else:
-                wx.MessageBox("Không thể mở Clipboard!", "Lỗi", wx.OK | wx.ICON_ERROR)
+                wx.MessageBox("Không thể mở bộ nhớ!", "Lỗi", wx.OK | wx.ICON_ERROR)
 
 if __name__ == "__main__":
     app = wx.App(False)
