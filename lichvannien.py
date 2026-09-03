@@ -2,8 +2,8 @@ import datetime
 import math
 import wx
 
-CAN = ['Canh', 'Tân', 'Nhâm', 'Quý', 'Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ']
-CHI = ['Thân', 'Dậu', 'Tuất', 'Hợi', 'Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi']
+CAN = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý']
+CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi']
 THANG_AM = ['Giêng', 'Hai', 'Ba', 'Tư', 'Năm', 'Sáu', 'Bảy', 'Tám', 'Chín', 'Mười', 'Mười Một', 'Chạp']
 THU_VN = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật']
 
@@ -11,7 +11,8 @@ def _INT(d):
     return int(math.floor(d))
 
 def jdFromDate(dd, mm, yy):
-    if yy < 0: yy += 1
+    if yy < 0: 
+        yy += 1
     if mm <= 2:
         yy -= 1
         mm += 12
@@ -56,7 +57,8 @@ def getSunLongitude(jdn, timeZone):
     C += (0.019993 - 0.000101 * T) * math.sin(2 * M * dr) + 0.000289 * math.sin(3 * M * dr)
     L = L0 + C
     L = L % 360
-    if L < 0: L += 360
+    if L < 0: 
+        L += 360
     return _INT(L / 30)
 
 def getLunarMonth11(yy, timeZone):
@@ -135,13 +137,22 @@ def convert_solar_to_lunar(dd, mm, yy):
     return int(lunarDay), int(lunarMonth), int(lunarYear), is_leap, dayNumber
 
 def get_can_chi_nam(year):
-    if year < 0: year += 1 
-    return f"{CAN[year % 10]} {CHI[year % 12]}"
+    if year < 0: 
+        year += 1 
+    return f"{CAN[(year + 6) % 10]} {CHI[(year + 8) % 12]}"
 
 def get_can_chi_ngay(jd):
-    can_ngay = CAN[(jd + 9) % 10]
-    chi_ngay = CHI[(jd + 1) % 12]
+    can_ngay = CAN[(jd + 0) % 10]
+    chi_ngay = CHI[(jd + 2) % 12]
     return f"{can_ngay} {chi_ngay}"
+
+def get_can_chi_thang(lunar_month, lunar_year):
+    can_nam_idx = (lunar_year + 6) % 10
+    can_thang_gieng = (can_nam_idx * 2 + 2) % 10
+    can_thang = (can_thang_gieng + lunar_month - 1) % 10
+    
+    chi_thang = (lunar_month + 1) % 12
+    return f"{CAN[can_thang]} {CHI[chi_thang]}"
 
 class CalendarFrame(wx.Frame):
     def __init__(self):
@@ -160,7 +171,7 @@ class CalendarFrame(wx.Frame):
 
         lbl_day = wx.StaticText(panel, label="Ngày:")
         self.txt_day = wx.TextCtrl(panel, size=(50, -1), style=wx.TE_PROCESS_ENTER)
-        self.txt_day.SetName("Ngày") # Đặt tên để Accessibility đọc đúng nhãn
+        self.txt_day.SetName("Ngày")
         
         lbl_month = wx.StaticText(panel, label="Tháng:")
         self.txt_month = wx.TextCtrl(panel, size=(50, -1), style=wx.TE_PROCESS_ENTER)
@@ -181,7 +192,7 @@ class CalendarFrame(wx.Frame):
 
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        self.btn_today = wx.Button(panel, label="&Xem lịch  ngày hôm nay")
+        self.btn_today = wx.Button(panel, label="&Xem lịch ngày hôm nay")
         self.btn_search = wx.Button(panel, label="&Tra cứu")
 
         btn_sizer.Add(self.btn_today, 0, wx.RIGHT, 10)
@@ -227,6 +238,7 @@ class CalendarFrame(wx.Frame):
         ld, lm, ly, is_leap, jd = convert_solar_to_lunar(d, m, y)
         can_chi_nam = get_can_chi_nam(ly)
         can_chi_ngay = get_can_chi_ngay(jd)
+        can_chi_thang = get_can_chi_thang(lm, ly)
         nhuan_str = " (Nhuận)" if is_leap else ""
 
         output_text = (
@@ -234,7 +246,8 @@ class CalendarFrame(wx.Frame):
             f"Dương lịch: Ngày {d} tháng {m} năm {y}\n"
             f"Âm lịch: Ngày {ld} tháng {lm}{nhuan_str} năm {ly}\n"
             f"Ngày: {can_chi_ngay}\n"
-            f"Tháng: {THANG_AM[lm-1]} - Năm: {can_chi_nam}"
+            f"Tháng: {can_chi_thang} (Tháng {THANG_AM[lm-1]})\n"
+            f"Năm: {can_chi_nam}"
         )
 
         self.txt_result.SetValue(output_text)
