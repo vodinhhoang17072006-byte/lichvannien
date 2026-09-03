@@ -264,7 +264,7 @@ class CalendarFrame(wx.Frame):
             f"Âm lịch: Ngày {ld} tháng {lm}{nhuan_str} năm {ly}\n"
             f"Ngày: {can_chi_ngay}\n"
             f"Tháng: {can_chi_thang} (Tháng {THANG_AM[lm-1]})\n"
-            f"Năm: {can_chi_nam}"
+            f"Năm: {can_chi_nam} ({ly})"
         )
 
         self.txt_day.SetValue(str(d))
