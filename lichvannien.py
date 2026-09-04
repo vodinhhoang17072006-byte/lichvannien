@@ -8,8 +8,39 @@ CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân
 THANG_AM = ['Giêng', 'Hai', 'Ba', 'Tư', 'Năm', 'Sáu', 'Bảy', 'Tám', 'Chín', 'Mười', 'Mười Một', 'Chạp']
 THU_VN = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật']
 
+TIET_KHI = [
+    "Xuân phân", "Thanh minh", "Cốc vũ", "Lập hạ", "Tiểu mãn", "Mang chủng",
+    "Hạ chí", "Tiểu thử", "Đại thử", "Lập thu", "Xử thử", "Bạch lộ",
+    "Thu phân", "Hàn lộ", "Sương giáng", "Lập đông", "Tiểu tuyết", "Đại tuyết",
+    "Đông chí", "Tiểu hàn", "Đại hàn", "Lập xuân", "Vũ thủy", "Kinh trập"
+]
+
+CHI_VOI_GIO = [
+    "Tý (23-1)", "Sửu (1-3)", "Dần (3-5)", "Mão (5-7)",
+    "Thìn (7-9)", "Tỵ (9-11)", "Ngọ (11-13)", "Mùi (13-15)",
+    "Thân (15-17)", "Dậu (17-19)", "Tuất (19-21)", "Hợi (21-23)"
+]
+
+HOANG_DAO_MAP = {
+    0: [0, 1, 3, 6, 8, 9],
+    1: [2, 3, 5, 8, 9, 11],
+    2: [0, 1, 4, 5, 7, 10],
+    3: [0, 2, 3, 6, 7, 9],
+    4: [2, 4, 5, 8, 9, 11],
+    5: [1, 4, 6, 7, 10, 11],
+    6: [0, 1, 3, 6, 8, 9],
+    7: [2, 3, 5, 8, 9, 11],
+    8: [0, 1, 4, 5, 7, 10],
+    9: [0, 2, 3, 6, 7, 9],
+    10: [2, 4, 5, 8, 9, 11],
+    11: [1, 4, 6, 7, 10, 11]
+}
+
 def _INT(d):
     return int(math.floor(d))
+
+def is_leap_year_solar(year):
+    return (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0)
 
 def jdFromDate(dd, mm, yy):
     if yy < 0: 
@@ -23,6 +54,27 @@ def jdFromDate(dd, mm, yy):
     E = int(365.25 * (yy + 4716))
     F = int(30.6001 * (mm + 1))
     return int(C + dd + E + F - 1524.5)
+
+def jdToDate(jd):
+    Z = int(jd + 0.5)
+    A = Z
+    if Z >= 2299161:
+        alpha = int((Z - 1867216.25) / 36524.25)
+        A = Z + 1 + alpha - int(alpha / 4)
+    B = A + 1524
+    C = int((B - 122.1) / 365.25)
+    D = int(365.25 * C)
+    E = int((B - D) / 30.6001)
+    day = B - D - int(30.6001 * E)
+    if E < 14:
+        month = E - 1
+    else:
+        month = E - 13
+    if month > 2:
+        year = C - 4716
+    else:
+        year = C - 4715
+    return int(day), int(month), int(year)
 
 def getNewMoonDay(k, timeZone):
     T = k / 1236.85
@@ -62,6 +114,25 @@ def getSunLongitude(jdn, timeZone):
         L += 360
     return _INT(L / 30)
 
+def getSunLongitudeExact(jdn, timeZone):
+    T = (jdn - 2451545.0 - timeZone / 24.0) / 36525.0
+    T2 = T * T
+    dr = math.pi / 180.0
+    L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T2
+    M = 357.52911 + 35999.05029 * T - 0.0001537 * T2
+    C = (1.914602 - 0.004817 * T - 0.000014 * T2) * math.sin(M * dr)
+    C += (0.019993 - 0.000101 * T) * math.sin(2 * M * dr) + 0.000289 * math.sin(3 * M * dr)
+    L = L0 + C
+    L = L % 360
+    if L < 0: 
+        L += 360
+    return L
+
+def get_tiet_khi(jd):
+    long_deg = getSunLongitudeExact(jd, 7.0)
+    index = int(long_deg / 15) % 24
+    return TIET_KHI[index]
+
 def getLunarMonth11(yy, timeZone):
     off = jdFromDate(31, 12, yy) - 2415020
     k = _INT(off / 29.53058867)
@@ -87,6 +158,18 @@ def getLeapMonthOffset(a11, timeZone):
         if i >= 14:
             break
     return 0
+
+def get_lunar_year_leap_info(lunarYear):
+    timeZone = 7.0
+    a11_prev = getLunarMonth11(lunarYear - 1, timeZone)
+    a11_curr = getLunarMonth11(lunarYear, timeZone)
+    if a11_curr - a11_prev > 365:
+        leap_off = getLeapMonthOffset(a11_prev, timeZone)
+        leap_m = leap_off - 2
+        if leap_m <= 0:
+            leap_m += 12
+        return True, leap_m
+    return False, 0
 
 def convert_solar_to_lunar(dd, mm, yy):
     timeZone = 7.0
@@ -137,6 +220,31 @@ def convert_solar_to_lunar(dd, mm, yy):
 
     return int(lunarDay), int(lunarMonth), int(lunarYear), is_leap, dayNumber
 
+def convert_lunar_to_solar(lunarDay, lunarMonth, lunarYear, isLeap):
+    timeZone = 7.0
+    if lunarMonth < 11:
+        a11 = getLunarMonth11(lunarYear - 1, timeZone)
+    else:
+        a11 = getLunarMonth11(lunarYear, timeZone)
+    
+    k_a11 = _INT((a11 - 2415020.75933) / 29.53058867 + 0.5)
+    leapMonth = getLeapMonthOffset(a11, timeZone)
+    
+    off = lunarMonth - 11
+    if off < 0:
+        off += 12
+        
+    if leapMonth > 0:
+        if isLeap and (off != leapMonth):
+            pass
+        if off > leapMonth or (isLeap and off == leapMonth):
+            off += 1
+            
+    k = k_a11 + off
+    nm = getNewMoonDay(k, timeZone)
+    jd = nm + lunarDay - 1
+    return jdToDate(jd)
+
 def get_can_chi_nam(year):
     if year < 0: 
         year += 1 
@@ -155,9 +263,15 @@ def get_can_chi_thang(lunar_month, lunar_year):
     chi_thang = (lunar_month + 1) % 12
     return f"{CAN[can_thang]} {CHI[chi_thang]}"
 
+def get_gio_hoang_dao(jd):
+    chi_ngay_idx = (jd + 2) % 12
+    indices = HOANG_DAO_MAP[chi_ngay_idx]
+    res = [CHI_VOI_GIO[i] for i in indices]
+    return ", ".join(res)
+
 class CalendarFrame(wx.Frame):
     def __init__(self):
-        super().__init__(None, title="Tra Cứu Lịch Âm Dương", size=(580, 520))
+        super().__init__(None, title="Tra Cứu Lịch Âm Dương", size=(650, 580))
         
         self.sound_flip = wx.adv.Sound("flip_calendar.wav")
 
@@ -198,12 +312,14 @@ class CalendarFrame(wx.Frame):
         self.btn_prev = wx.Button(panel, label="Xem  lịch ngày hôm &trước")
         self.btn_today = wx.Button(panel, label="&Xem lịch ngày hôm nay")
         self.btn_next = wx.Button(panel, label=" Xem lịch ngày hôm &sau")
-        self.btn_search = wx.Button(panel, label="Tra &cứu")
+        self.btn_search_solar = wx.Button(panel, label="Tra cứu &lịch dương")
+        self.btn_search_lunar = wx.Button(panel, label="Tra cứu lịc&h âm")
 
         btn_sizer.Add(self.btn_prev, 0, wx.RIGHT, 5)
         btn_sizer.Add(self.btn_today, 0, wx.RIGHT, 5)
         btn_sizer.Add(self.btn_next, 0, wx.RIGHT, 5)
-        btn_sizer.Add(self.btn_search, 0, wx.LEFT, 5)
+        btn_sizer.Add(self.btn_search_solar, 0, wx.RIGHT, 5)
+        btn_sizer.Add(self.btn_search_lunar, 0, wx.LEFT, 5)
 
         main_sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.TOP | wx.BOTTOM, 15)
 
@@ -215,7 +331,7 @@ class CalendarFrame(wx.Frame):
         self.txt_result = wx.TextCtrl(
             panel, 
             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_DONTWRAP, 
-            size=(-1, 160)
+            size=(-1, 240)
         )
         self.txt_result.SetName("Kết quả lịch")
         font_res = wx.Font(11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
@@ -234,12 +350,13 @@ class CalendarFrame(wx.Frame):
         self.btn_prev.Bind(wx.EVT_BUTTON, self.on_prev_day)
         self.btn_today.Bind(wx.EVT_BUTTON, self.on_show_today)
         self.btn_next.Bind(wx.EVT_BUTTON, self.on_next_day)
-        self.btn_search.Bind(wx.EVT_BUTTON, self.on_search)
+        self.btn_search_solar.Bind(wx.EVT_BUTTON, self.on_search_solar)
+        self.btn_search_lunar.Bind(wx.EVT_BUTTON, self.on_search_lunar)
         self.btn_copy.Bind(wx.EVT_BUTTON, self.on_copy_clipboard)
         
-        self.txt_day.Bind(wx.EVT_TEXT_ENTER, self.on_search)
-        self.txt_month.Bind(wx.EVT_TEXT_ENTER, self.on_search)
-        self.txt_year.Bind(wx.EVT_TEXT_ENTER, self.on_search)
+        self.txt_day.Bind(wx.EVT_TEXT_ENTER, self.on_search_solar)
+        self.txt_month.Bind(wx.EVT_TEXT_ENTER, self.on_search_solar)
+        self.txt_year.Bind(wx.EVT_TEXT_ENTER, self.on_search_solar)
 
         self.Center()
         self.on_show_today(None)
@@ -258,13 +375,31 @@ class CalendarFrame(wx.Frame):
         can_chi_thang = get_can_chi_thang(lm, ly)
         nhuan_str = " (Nhuận)" if is_leap else ""
 
+        if is_leap_year_solar(y):
+            solar_leap_info = f"Năm {y} là năm nhuận Dương lịch (có 29 ngày vào tháng 2)."
+        else:
+            solar_leap_info = f"Năm {y} là năm không nhuận Dương lịch."
+
+        has_lunar_leap, leap_month = get_lunar_year_leap_info(ly)
+        if has_lunar_leap:
+            lunar_leap_info = f"Năm Âm lịch nhuận tháng {leap_month}"
+        else:
+            lunar_leap_info = f"Năm Âm lịch này không phải năm nhuận"
+
+        tiet_khi_str = get_tiet_khi(jd)
+        gio_hoang_dao_str = get_gio_hoang_dao(jd)
+
         output_text = (
             f"Thứ: {thu_str}\n"
             f"Dương lịch: Ngày {d} tháng {m} năm {y}\n"
             f"Âm lịch: Ngày {ld} tháng {lm}{nhuan_str} năm {ly}\n"
             f"Ngày: {can_chi_ngay}\n"
             f"Tháng: {can_chi_thang} (Tháng {THANG_AM[lm-1]})\n"
-            f"Năm: {can_chi_nam} ({ly})"
+            f"Năm: {can_chi_nam} ({ly})\n"
+            f"✦ Thông tin Nhuận Dương Lịch: {solar_leap_info}\n"
+            f"✦ Thông tin Nhuận Âm Lịch: {lunar_leap_info}\n"
+            f"✦ Tiết khí: {tiet_khi_str}\n"
+            f"✦ Giờ Hoàng Đạo: {gio_hoang_dao_str}"
         )
 
         self.txt_day.SetValue(str(d))
@@ -308,7 +443,7 @@ class CalendarFrame(wx.Frame):
         except ValueError:
             wx.MessageBox("Vui lòng nhập ngày tháng năm hợp lệ trước khi chuyển ngày!", "Lỗi nhập liệu", wx.OK | wx.ICON_ERROR)
 
-    def on_search(self, event):
+    def on_search_solar(self, event):
         try:
             d = int(self.txt_day.GetValue().strip())
             m = int(self.txt_month.GetValue().strip())
@@ -316,6 +451,17 @@ class CalendarFrame(wx.Frame):
             self.update_calendar(d, m, y)
         except ValueError:
             wx.MessageBox("Vui lòng nhập số hợp lệ vào các ô Ngày, Tháng, Năm!", "Lỗi nhập liệu", wx.OK | wx.ICON_ERROR)
+
+    def on_search_lunar(self, event):
+        try:
+            ld = int(self.txt_day.GetValue().strip())
+            lm = int(self.txt_month.GetValue().strip())
+            ly = int(self.txt_year.GetValue().strip())
+            
+            sy, sm, sd = convert_lunar_to_solar(ld, lm, ly, False)
+            self.update_calendar(sd, sm, sy)
+        except ValueError:
+            wx.MessageBox("Vui lòng nhập ngày tháng năm Âm lịch hợp lệ!", "Lỗi nhập liệu", wx.OK | wx.ICON_ERROR)
 
     def on_copy_clipboard(self, event):
         text_to_copy = self.txt_result.GetValue()
