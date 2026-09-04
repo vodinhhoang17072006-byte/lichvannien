@@ -458,7 +458,7 @@ class CalendarFrame(wx.Frame):
             lm = int(self.txt_month.GetValue().strip())
             ly = int(self.txt_year.GetValue().strip())
             
-            sy, sm, sd = convert_lunar_to_solar(ld, lm, ly, False)
+            sd, sm, sy = convert_lunar_to_solar(ld, lm, ly, False)
             self.update_calendar(sd, sm, sy)
         except ValueError:
             wx.MessageBox("Vui lòng nhập ngày tháng năm Âm lịch hợp lệ!", "Lỗi nhập liệu", wx.OK | wx.ICON_ERROR)
