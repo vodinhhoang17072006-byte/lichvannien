@@ -43,37 +43,28 @@ def is_leap_year_solar(year):
     return (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0)
 
 def jdFromDate(dd, mm, yy):
-    if yy < 0: 
-        yy += 1
-    if mm <= 2:
-        yy -= 1
-        mm += 12
-    A = int(yy / 100)
-    B = int(A / 4)
-    C = int(2 - A + B)
-    E = int(365.25 * (yy + 4716))
-    F = int(30.6001 * (mm + 1))
-    return int(C + dd + E + F - 1524.5)
+    a = _INT((14 - mm) / 12)
+    y = yy + 4800 - a
+    m = mm + 12 * a - 3
+    jd = dd + _INT((153 * m + 2) / 5) + 365 * y + _INT(y / 4) - _INT(y / 100) + _INT(y / 400) - 32045
+    if jd < 2299161:
+        jd = dd + _INT((153 * m + 2) / 5) + 365 * y + _INT(y / 4) - 32083
+    return jd
 
 def jdToDate(jd):
-    Z = int(jd + 0.5)
-    A = Z
-    if Z >= 2299161:
-        alpha = int((Z - 1867216.25) / 36524.25)
-        A = Z + 1 + alpha - int(alpha / 4)
-    B = A + 1524
-    C = int((B - 122.1) / 365.25)
-    D = int(365.25 * C)
-    E = int((B - D) / 30.6001)
-    day = B - D - int(30.6001 * E)
-    if E < 14:
-        month = E - 1
+    if jd > 2299160:
+        a = jd + 32044
+        b = _INT((4 * a + 3) / 146097)
+        c = a - _INT((b * 146097) / 4)
     else:
-        month = E - 13
-    if month > 2:
-        year = C - 4716
-    else:
-        year = C - 4715
+        b = 0
+        c = jd + 32082
+    d = _INT((4 * c + 3) / 1461)
+    e = c - _INT((1461 * d) / 4)
+    m = _INT((5 * e + 2) / 153)
+    day = e - _INT((153 * m + 2) / 5) + 1
+    month = m + 3 - 12 * _INT(m / 10)
+    year = b * 100 + d - 4800 + _INT(m / 10)
     return int(day), int(month), int(year)
 
 def getNewMoonDay(k, timeZone):
@@ -87,32 +78,31 @@ def getNewMoonDay(k, timeZone):
     Mpr = 306.0253 + 385.81691806 * k + 0.0107306 * T2 + 0.00001236 * T3
     F = 21.2964 + 390.67050646 * k - 0.0016528 * T2 - 0.00000239 * T3
     C1 = (0.1734 - 0.000393 * T) * math.sin(M * dr) + 0.0021 * math.sin(2 * M * dr)
-    C1 -= 0.4068 * math.sin(Mpr * dr) + 0.0161 * math.sin(2 * Mpr * dr)
+    C1 -= 0.4068 * math.sin(Mpr * dr) - 0.0161 * math.sin(2 * Mpr * dr)
     C1 -= 0.0004 * math.sin(3 * Mpr * dr)
     C1 += 0.0104 * math.sin(2 * F * dr) - 0.0051 * math.sin((M + Mpr) * dr)
-    C1 -= 0.00074 * math.sin((M - Mpr) * dr) + 0.0004 * math.sin((2 * F + M) * dr)
-    C1 -= 0.0004 * math.sin((2 * F - M) * dr) - 0.0006 * math.sin((2 * F + Mpr) * dr)
+    C1 -= 0.0074 * math.sin((M - Mpr) * dr) - 0.0004 * math.sin((2 * F + M) * dr)
+    C1 -= 0.0004 * math.sin((2 * F - M) * dr) + 0.0006 * math.sin((2 * F + Mpr) * dr)
     C1 += 0.0010 * math.sin((2 * F - Mpr) * dr) + 0.0005 * math.sin((M + 2 * Mpr) * dr)
     if T < -11:
-        deltaT = 0.001 + 0.00054 * math.cos((166.56 + 132.87 * T) * dr)
+        deltaT = 0.001 + 0.000839 * T + 0.0002261 * T2 - 0.00000845 * T3 - 0.000000081 * T * T3
     else:
-        deltaT = (T * T) * 0.0000278 + 0.000216
+        deltaT = -0.000278 + 0.000265 * T + 0.000262 * T2
     JdNew = Jd1 + C1 - deltaT
     return _INT(JdNew + 0.5 + timeZone / 24.0)
 
 def getSunLongitude(jdn, timeZone):
-    T = (jdn - 2451545.0 - timeZone / 24.0) / 36525.0
+    T = (jdn - 2451545.5 - timeZone / 24.0) / 36525.0
     T2 = T * T
     dr = math.pi / 180.0
-    L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T2
-    M = 357.52911 + 35999.05029 * T - 0.0001537 * T2
-    C = (1.914602 - 0.004817 * T - 0.000014 * T2) * math.sin(M * dr)
-    C += (0.019993 - 0.000101 * T) * math.sin(2 * M * dr) + 0.000289 * math.sin(3 * M * dr)
-    L = L0 + C
-    L = L % 360
-    if L < 0: 
-        L += 360
-    return _INT(L / 30)
+    M = 357.52910 + 35999.05030 * T - 0.0001559 * T2 - 0.00000048 * T * T2
+    L0 = 280.46645 + 36000.76983 * T + 0.0003032 * T2
+    DL = (1.914600 - 0.004817 * T - 0.000014 * T2) * math.sin(dr * M)
+    DL += (0.019993 - 0.000101 * T) * math.sin(dr * 2 * M) + 0.000290 * math.sin(dr * 3 * M)
+    L = L0 + DL
+    L = L * dr
+    L = L - math.pi * 2 * _INT(L / (math.pi * 2))
+    return _INT(L / math.pi * 6)
 
 def getSunLongitudeExact(jdn, timeZone):
     T = (jdn - 2451545.0 - timeZone / 24.0) / 36525.0
@@ -134,30 +124,25 @@ def get_tiet_khi(jd):
     return TIET_KHI[index]
 
 def getLunarMonth11(yy, timeZone):
-    off = jdFromDate(31, 12, yy) - 2415020
-    k = _INT(off / 29.53058867)
+    off = jdFromDate(31, 12, yy) - 2415021.076998695
+    k = _INT(off / 29.530588853)
     nm = getNewMoonDay(k, timeZone)
     sunLong = getSunLongitude(nm, timeZone)
     if sunLong >= 9:
-        k -= 1
-        nm = getNewMoonDay(k, timeZone)
+        nm = getNewMoonDay(k - 1, timeZone)
     return nm
 
 def getLeapMonthOffset(a11, timeZone):
-    k = _INT((a11 - 2415020.75933) / 29.53058867 + 0.5)
+    k = _INT((a11 - 2415021.076998695) / 29.530588853 + 0.5)
     i = 1
-    arc = getSunLongitude(getNewMoonDay(k, timeZone), timeZone)
+    arc = getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone)
     while True:
-        k += 1
-        nm = getNewMoonDay(k, timeZone)
-        sunLong = getSunLongitude(nm, timeZone)
-        if sunLong == arc:
-            return i
-        arc = sunLong
+        last = arc
         i += 1
-        if i >= 14:
+        arc = getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone)
+        if not (arc != last and i < 14):
             break
-    return 0
+    return i - 1
 
 def get_lunar_year_leap_info(lunarYear):
     timeZone = 7.0
@@ -174,49 +159,36 @@ def get_lunar_year_leap_info(lunarYear):
 def convert_solar_to_lunar(dd, mm, yy):
     timeZone = 7.0
     dayNumber = jdFromDate(dd, mm, yy)
-    k = _INT((dayNumber - 2415020.75933) / 29.53058867)
-    nm = getNewMoonDay(k, timeZone)
-    if nm > dayNumber:
-        k -= 1
-        nm = getNewMoonDay(k, timeZone)
-    
-    lunarDay = dayNumber - nm + 1
+    k = _INT((dayNumber - 2415021.076998695) / 29.530588853)
+    monthStart = getNewMoonDay(k + 1, timeZone)
+    if monthStart > dayNumber:
+        monthStart = getNewMoonDay(k, timeZone)
+
     a11 = getLunarMonth11(yy, timeZone)
     b11 = a11
-    if a11 >= nm:
+    if a11 >= monthStart:
+        lunarYear = yy
         a11 = getLunarMonth11(yy - 1, timeZone)
     else:
+        lunarYear = yy + 1
         b11 = getLunarMonth11(yy + 1, timeZone)
-        
-    k_a11 = _INT((a11 - 2415020.75933) / 29.53058867 + 0.5)
-    off = k - k_a11
-    
+
+    lunarDay = dayNumber - monthStart + 1
+    diff = _INT((monthStart - a11) / 29)
+
     is_leap = False
-    leapMonth = 0
+    lunarMonth = diff + 11
     if b11 - a11 > 365:
-        leapMonth = getLeapMonthOffset(a11, timeZone)
-        
-    if leapMonth > 0:
-        if off == leapMonth:
-            is_leap = True
-            lunarMonth = off + 10
-        elif off > leapMonth:
-            lunarMonth = off + 10
-        else:
-            lunarMonth = off + 11
-    else:
-        lunarMonth = off + 11
-        
+        leapMonthDiff = getLeapMonthOffset(a11, timeZone)
+        if diff >= leapMonthDiff:
+            lunarMonth = diff + 10
+            if diff == leapMonthDiff:
+                is_leap = True
+
     if lunarMonth > 12:
         lunarMonth -= 12
-
-    lunarYear = yy
-    if lunarMonth >= 11 and mm < 6:
-        lunarYear = yy - 1
-    elif lunarMonth < 3 and mm > 10:
-        lunarYear = yy + 1
-    else:
-        lunarYear = yy if a11 < nm else yy - 1
+    if lunarMonth >= 11 and diff < 4:
+        lunarYear -= 1
 
     return int(lunarDay), int(lunarMonth), int(lunarYear), is_leap, dayNumber
 
@@ -224,23 +196,21 @@ def convert_lunar_to_solar(lunarDay, lunarMonth, lunarYear, isLeap):
     timeZone = 7.0
     if lunarMonth < 11:
         a11 = getLunarMonth11(lunarYear - 1, timeZone)
+        b11 = getLunarMonth11(lunarYear, timeZone)
     else:
         a11 = getLunarMonth11(lunarYear, timeZone)
-    
-    k_a11 = _INT((a11 - 2415020.75933) / 29.53058867 + 0.5)
-    leapMonth = getLeapMonthOffset(a11, timeZone)
-    
+        b11 = getLunarMonth11(lunarYear + 1, timeZone)
+
     off = lunarMonth - 11
     if off < 0:
         off += 12
-        
-    if leapMonth > 0:
-        if isLeap and (off != leapMonth):
-            pass
-        if off > leapMonth or (isLeap and off == leapMonth):
+
+    if b11 - a11 > 365:
+        leapOff = getLeapMonthOffset(a11, timeZone)
+        if isLeap or off >= leapOff:
             off += 1
-            
-    k = k_a11 + off
+
+    k = _INT(0.5 + (a11 - 2415021.076998695) / 29.530588853) + off
     nm = getNewMoonDay(k, timeZone)
     jd = nm + lunarDay - 1
     return jdToDate(jd)
@@ -251,8 +221,8 @@ def get_can_chi_nam(year):
     return f"{CAN[(year + 6) % 10]} {CHI[(year + 8) % 12]}"
 
 def get_can_chi_ngay(jd):
-    can_ngay = CAN[(jd + 0) % 10]
-    chi_ngay = CHI[(jd + 2) % 12]
+    can_ngay = CAN[(jd + 9) % 10]
+    chi_ngay = CHI[(jd + 1) % 12]
     return f"{can_ngay} {chi_ngay}"
 
 def get_can_chi_thang(lunar_month, lunar_year):
@@ -264,7 +234,7 @@ def get_can_chi_thang(lunar_month, lunar_year):
     return f"{CAN[can_thang]} {CHI[chi_thang]}"
 
 def get_gio_hoang_dao(jd):
-    chi_ngay_idx = (jd + 2) % 12
+    chi_ngay_idx = (jd + 1) % 12
     indices = HOANG_DAO_MAP[chi_ngay_idx]
     res = [CHI_VOI_GIO[i] for i in indices]
     return ", ".join(res)
