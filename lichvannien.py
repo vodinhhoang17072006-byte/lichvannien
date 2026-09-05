@@ -239,9 +239,118 @@ def get_gio_hoang_dao(jd):
     res = [CHI_VOI_GIO[i] for i in indices]
     return ", ".join(res)
 
+def get_khong_minh_xuat_hanh(lunar_day, lunar_month):
+    """Tính ngày xuất hành theo Khổng Minh dựa trên ngày và tháng Âm lịch."""
+    group_1 = [1, 4, 7, 10]
+    group_2 = [2, 5, 8, 11]
+    group_3 = [3, 6, 9, 12]
+
+    if lunar_month in group_1:
+        mapping = {
+            1: ("Đường Phong", "Rất tốt, xuất hành thuận lợi, cầu tài được như ý muốn, gặp quý nhân phù trợ."),
+            7: ("Đường Phong", "Rất tốt, xuất hành thuận lợi, cầu tài được như ý muốn, gặp quý nhân phù trợ."),
+            13: ("Đường Phong", "Rất tốt, xuất hành thuận lợi, cầu tài được như ý muốn, gặp quý nhân phù trợ."),
+            19: ("Đường Phong", "Rất tốt, xuất hành thuận lợi, cầu tài được như ý muốn, gặp quý nhân phù trợ."),
+            25: ("Đường Phong", "Rất tốt, xuất hành thuận lợi, cầu tài được như ý muốn, gặp quý nhân phù trợ."),
+            2: ("Kim Thổ", "Ra đi nhỡ tàu, nhỡ xe, cầu tài không được, trên đường đi mất của, bất lợi."),
+            8: ("Kim Thổ", "Ra đi nhỡ tàu, nhỡ xe, cầu tài không được, trên đường đi mất của, bất lợi."),
+            14: ("Kim Thổ", "Ra đi nhỡ tàu, nhỡ xe, cầu tài không được, trên đường đi mất của, bất lợi."),
+            20: ("Kim Thổ", "Ra đi nhỡ tàu, nhỡ xe, cầu tài không được, trên đường đi mất của, bất lợi."),
+            26: ("Kim Thổ", "Ra đi nhỡ tàu, nhỡ xe, cầu tài không được, trên đường đi mất của, bất lợi."),
+            3: ("Kim Dương", "Xuất hành tốt, có quý nhân phù trợ, tài lộc thông suốt, thưa kiện có nhiều lý phải."),
+            9: ("Kim Dương", "Xuất hành tốt, có quý nhân phù trợ, tài lộc thông suốt, thưa kiện có nhiều lý phải."),
+            15: ("Kim Dương", "Xuất hành tốt, có quý nhân phù trợ, tài lộc thông suốt, thưa kiện có nhiều lý phải."),
+            21: ("Kim Dương", "Xuất hành tốt, có quý nhân phù trợ, tài lộc thông suốt, thưa kiện có nhiều lý phải."),
+            27: ("Kim Dương", "Xuất hành tốt, có quý nhân phù trợ, tài lộc thông suốt, thưa kiện có nhiều lý phải."),
+            4: ("Thuần Dương", "Xuất hành tốt, lúc về cũng tốt, nhiều thuận lợi, được người tốt giúp đỡ, cầu tài được như ý muốn."),
+            10: ("Thuần Dương", "Xuất hành tốt, lúc về cũng tốt, nhiều thuận lợi, được người tốt giúp đỡ, cầu tài được như ý muốn."),
+            16: ("Thuần Dương", "Xuất hành tốt, lúc về cũng tốt, nhiều thuận lợi, được người tốt giúp đỡ, cầu tài được như ý muốn."),
+            22: ("Thuần Dương", "Xuất hành tốt, lúc về cũng tốt, nhiều thuận lợi, được người tốt giúp đỡ, cầu tài được như ý muốn."),
+            28: ("Thuần Dương", "Xuất hành tốt, lúc về cũng tốt, nhiều thuận lợi, được người tốt giúp đỡ, cầu tài được như ý muốn."),
+            5: ("Đạo Tặc", "Rất xấu, xuất hành bị hại, mất của, nhiều bất lợi."),
+            11: ("Đạo Tặc", "Rất xấu, xuất hành bị hại, mất của, nhiều bất lợi."),
+            17: ("Đạo Tặc", "Rất xấu, xuất hành bị hại, mất của, nhiều bất lợi."),
+            23: ("Đạo Tặc", "Rất xấu, xuất hành bị hại, mất của, nhiều bất lợi."),
+            29: ("Đạo Tặc", "Rất xấu, xuất hành bị hại, mất của, nhiều bất lợi."),
+            6: ("Hảo Thương", "Xuất hành thuận lợi, gặp quý nhân phù trợ, làm mọi việc vừa lòng, như ý muốn, áo phẩm vinh quy."),
+            12: ("Hảo Thương", "Xuất hành thuận lợi, gặp quý nhân phù trợ, làm mọi việc vừa lòng, như ý muốn, áo phẩm vinh quy."),
+            18: ("Hảo Thương", "Xuất hành thuận lợi, gặp quý nhân phù trợ, làm mọi việc vừa lòng, như ý muốn, áo phẩm vinh quy."),
+            24: ("Hảo Thương", "Xuất hành thuận lợi, gặp quý nhân phù trợ, làm mọi việc vừa lòng, như ý muốn, áo phẩm vinh quy."),
+            30: ("Hảo Thương", "Xuất hành thuận lợi, gặp quý nhân phù trợ, làm mọi việc vừa lòng, như ý muốn, áo phẩm vinh quy.")
+        }
+    elif lunar_month in group_2:
+        mapping = {
+            1: ("Thiên Đạo", "Xuất hành cầu tài nên tránh, dù được cũng rất tốn kém, thất lý mà thua."),
+            9: ("Thiên Đạo", "Xuất hành cầu tài nên tránh, dù được cũng rất tốn kém, thất lý mà thua."),
+            17: ("Thiên Đạo", "Xuất hành cầu tài nên tránh, dù được cũng rất tốn kém, thất lý mà thua."),
+            25: ("Thiên Đạo", "Xuất hành cầu tài nên tránh, dù được cũng rất tốn kém, thất lý mà thua."),
+            2: ("Thiên Môn", "Xuất hành làm mọi việc đều vừa ý, cầu được ước thấy, mọi việc đều thành đạt."),
+            10: ("Thiên Môn", "Xuất hành làm mọi việc đều vừa ý, cầu được ước thấy, mọi việc đều thành đạt."),
+            18: ("Thiên Môn", "Xuất hành làm mọi việc đều vừa ý, cầu được ước thấy, mọi việc đều thành đạt."),
+            26: ("Thiên Môn", "Xuất hành làm mọi việc đều vừa ý, cầu được ước thấy, mọi việc đều thành đạt."),
+            3: ("Thiên Đường", "Xuất hành tốt, quý nhân phù trợ, buôn bán may mắn, mọi việc đều như ý."),
+            11: ("Thiên Đường", "Xuất hành tốt, quý nhân phù trợ, buôn bán may mắn, mọi việc đều như ý."),
+            19: ("Thiên Đường", "Xuất hành tốt, quý nhân phù trợ, buôn bán may mắn, mọi việc đều như ý."),
+            27: ("Thiên Đường", "Xuất hành tốt, quý nhân phù trợ, buôn bán may mắn, mọi việc đều như ý."),
+            4: ("Thiên Tài", "Nên xuất hành, cầu tài thắng lợi, được người tốt giúp đỡ, mọi việc đều thuận."),
+            12: ("Thiên Tài", "Nên xuất hành, cầu tài thắng lợi, được người tốt giúp đỡ, mọi việc đều thuận."),
+            20: ("Thiên Tài", "Nên xuất hành, cầu tài thắng lợi, được người tốt giúp đỡ, mọi việc đều thuận."),
+            28: ("Thiên Tài", "Nên xuất hành, cầu tài thắng lợi, được người tốt giúp đỡ, mọi việc đều thuận."),
+            5: ("Thiên Tặc", "Xuất hành xấu, cầu tài không được, đi đường dễ mất cắp, mọi việc đều rất xấu."),
+            13: ("Thiên Tặc", "Xuất hành xấu, cầu tài không được, đi đường dễ mất cắp, mọi việc đều rất xấu."),
+            21: ("Thiên Tặc", "Xuất hành xấu, cầu tài không được, đi đường dễ mất cắp, mọi việc đều rất xấu."),
+            29: ("Thiên Tặc", "Xuất hành xấu, cầu tài không được, đi đường dễ mất cắp, mọi việc đều rất xấu."),
+            6: ("Thiên Dương", "Xuất hành tốt, cầu tài được tài, hỏi vợ được vợ, mọi việc đều như ý muốn."),
+            14: ("Thiên Dương", "Xuất hành tốt, cầu tài được tài, hỏi vợ được vợ, mọi việc đều như ý muốn."),
+            22: ("Thiên Dương", "Xuất hành tốt, cầu tài được tài, hỏi vợ được vợ, mọi việc đều như ý muốn."),
+            30: ("Thiên Dương", "Xuất hành tốt, cầu tài được tài, hỏi vợ được vợ, mọi việc đều như ý muốn."),
+            7: ("Thiên Hầu", "Xuất hành dù ít hay nhiều cũng cãi cọ, phải tránh xảy ra tai nạn chảy máu."),
+            15: ("Thiên Hầu", "Xuất hành dù ít hay nhiều cũng cãi cọ, phải tránh xảy ra tai nạn chảy máu."),
+            23: ("Thiên Hầu", "Xuất hành dù ít hay nhiều cũng cãi cọ, phải tránh xảy ra tai nạn chảy máu."),
+            8: ("Thiên Thương", "Xuất hành gặp cấp trên thì tuyệt vời, cầu tài thì được tài, mọi việc đều thuận lợi."),
+            16: ("Thiên Thương", "Xuất hành gặp cấp trên thì tuyệt vời, cầu tài thì được tài, mọi việc đều thuận lợi."),
+            24: ("Thiên Thương", "Xuất hành gặp cấp trên thì tuyệt vời, cầu tài thì được tài, mọi việc đều thuận lợi.")
+        }
+    else:
+        mapping = {
+            1: ("Chu Tước", "Xuất hành, cầu tài đều xấu, hay mất của, kiện cáo thua vì đuối lý."),
+            9: ("Chu Tước", "Xuất hành, cầu tài đều xấu, hay mất của, kiện cáo thua vì đuối lý."),
+            17: ("Chu Tước", "Xuất hành, cầu tài đều xấu, hay mất của, kiện cáo thua vì đuối lý."),
+            25: ("Chu Tước", "Xuất hành, cầu tài đều xấu, hay mất của, kiện cáo thua vì đuối lý."),
+            2: ("Bạch Hổ Đầu", "Xuất hành, cầu tài đều được, đi đâu đều thông đạt cả."),
+            10: ("Bạch Hổ Đầu", "Xuất hành, cầu tài đều được, đi đâu đều thông đạt cả."),
+            18: ("Bạch Hổ Đầu", "Xuất hành, cầu tài đều được, đi đâu đều thông đạt cả."),
+            26: ("Bạch Hổ Đầu", "Xuất hành, cầu tài đều được, đi đâu đều thông đạt cả."),
+            3: ("Bạch Hổ Kiếp", "Xuất hành, cầu tài được như ý muốn, đi hướng Nam và Bắc rất thuận lợi."),
+            11: ("Bạch Hổ Kiếp", "Xuất hành, cầu tài được như ý muốn, đi hướng Nam và Bắc rất thuận lợi."),
+            19: ("Bạch Hổ Kiếp", "Xuất hành, cầu tài được như ý muốn, đi hướng Nam và Bắc rất thuận lợi."),
+            27: ("Bạch Hổ Kiếp", "Xuất hành, cầu tài được như ý muốn, đi hướng Nam và Bắc rất thuận lợi."),
+            4: ("Bạch Hổ Túc", "Cấm đi xa, làm việc gì cũng không thành công, rất xấu trong mọi việc."),
+            12: ("Bạch Hổ Túc", "Cấm đi xa, làm việc gì cũng không thành công, rất xấu trong mọi việc."),
+            20: ("Bạch Hổ Túc", "Cấm đi xa, làm việc gì cũng không thành công, rất xấu trong mọi việc."),
+            28: ("Bạch Hổ Túc", "Cấm đi xa, làm việc gì cũng không thành công, rất xấu trong mọi việc."),
+            5: ("Huyền Vũ", "Xuất hành thường gặp cãi cọ, gặp việc xấu, không nên đi."),
+            13: ("Huyền Vũ", "Xuất hành thường gặp cãi cọ, gặp việc xấu, không nên đi."),
+            21: ("Huyền Vũ", "Xuất hành thường gặp cãi cọ, gặp việc xấu, không nên đi."),
+            29: ("Huyền Vũ", "Xuất hành thường gặp cãi cọ, gặp việc xấu, không nên đi."),
+            6: ("Thanh Long Đầu", "Xuất hành nên đi vào sáng sớm, cầu tài thắng lợi, mọi việc như ý."),
+            14: ("Thanh Long Đầu", "Xuất hành nên đi vào sáng sớm, cầu tài thắng lợi, mọi việc như ý."),
+            22: ("Thanh Long Đầu", "Xuất hành nên đi vào sáng sớm, cầu tài thắng lợi, mọi việc như ý."),
+            30: ("Thanh Long Đầu", "Xuất hành nên đi vào sáng sớm, cầu tài thắng lợi, mọi việc như ý."),
+            7: ("Thanh Long Kiếp", "Xuất hành 4 phương 8 hướng đều tốt, trăm sự được như ý."),
+            15: ("Thanh Long Kiếp", "Xuất hành 4 phương 8 hướng đều tốt, trăm sự được như ý."),
+            23: ("Thanh Long Kiếp", "Xuất hành 4 phương 8 hướng đều tốt, trăm sự được như ý."),
+            8: ("Thanh Long Túc", "Đi xa không nên, xuất hành xấu, tài lộc không có, kiện cáo đuối lý."),
+            16: ("Thanh Long Túc", "Đi xa không nên, xuất hành xấu, tài lộc không có, kiện cáo đuối lý."),
+            24: ("Thanh Long Túc", "Đi xa không nên, xuất hành xấu, tài lộc không có, kiện cáo đuối lý.")
+        }
+
+    res = mapping.get(lunar_day, ("Không xác định", "Không có thông tin"))
+    return f"Ngày {res[0]}: {res[1]}"
+
 class CalendarFrame(wx.Frame):
     def __init__(self):
-        super().__init__(None, title="Tra Cứu Lịch Âm Dương", size=(650, 580))
+        super().__init__(None, title="Tra Cứu Lịch Âm Dương", size=(650, 620))
         
         self.sound_flip = wx.adv.Sound("flip_calendar.wav")
 
@@ -301,7 +410,7 @@ class CalendarFrame(wx.Frame):
         self.txt_result = wx.TextCtrl(
             panel, 
             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_DONTWRAP, 
-            size=(-1, 240)
+            size=(-1, 280)
         )
         self.txt_result.SetName("Kết quả lịch")
         font_res = wx.Font(11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
@@ -358,6 +467,7 @@ class CalendarFrame(wx.Frame):
 
         tiet_khi_str = get_tiet_khi(jd)
         gio_hoang_dao_str = get_gio_hoang_dao(jd)
+        khong_minh_str = get_khong_minh_xuat_hanh(ld, lm)
 
         output_text = (
             f"Thứ: {thu_str}\n"
@@ -369,7 +479,8 @@ class CalendarFrame(wx.Frame):
             f"✦ Thông tin Nhuận Dương Lịch: {solar_leap_info}\n"
             f"✦ Thông tin Nhuận Âm Lịch: {lunar_leap_info}\n"
             f"✦ Tiết khí: {tiet_khi_str}\n"
-            f"✦ Giờ Hoàng Đạo: {gio_hoang_dao_str}"
+            f"✦ Giờ Hoàng Đạo: {gio_hoang_dao_str}\n"
+            f"✦ Lịch Xuất Hành Khổng Minh: {khong_minh_str}"
         )
 
         self.txt_day.SetValue(str(d))
